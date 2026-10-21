@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>COMP713 Project &amp; Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <h1>Project &amp; Task Manager</h1>
+        <p>COMP713 — Manager and Employee Demonstration</p>
+    </div>
+</header>
+
+<main>
+    <div id="message" class="message hidden"
+         role="status" aria-live="polite"></div>
+
+    <section class="card" aria-labelledby="usersTitle">
+        <div class="section-heading">
+            <h2 id="usersTitle">1. Team members</h2>
+            <button id="refreshUsersButton" type="button"
+                    class="secondary-button">Refresh users</button>
+        </div>
+
+        <form id="userForm">
+            <label for="username">Username</label>
+            <input id="username" name="username" required
+                   minlength="3" maxlength="60"
+                   pattern="[A-Za-z0-9_-]+"
+                   placeholder="e.g. employee1">
+
+            <label for="displayName">Full name</label>
+            <input id="displayName" name="displayName" required
+                   maxlength="100" placeholder="e.g. Alex Smith">
+
+            <label for="userRole">Role</label>
+            <select id="userRole" name="role">
+                <option value="EMPLOYEE">Employee</option>
+                <option value="MANAGER">Manager</option>
+            </select>
+
+            <button type="submit">Create team member</button>
+        </form>
+
+        <div id="userList" class="user-list"
+             aria-live="polite"></div>
+
+        <p class="demo-note">
+            Classroom demonstration only: roles are not authenticated.
+            Do not use this interface for real employee accounts
+            or private tasks.
+        </p>
+    </section>
+
+    <section class="card" aria-labelledby="employeeTitle">
+        <h2 id="employeeTitle">2. Employee work view</h2>
+
+        <label for="employeeSelect">Choose an employee</label>
+        <select id="employeeSelect">
+            <option value="">Select an employee</option>
+        </select>
+
+        <button id="refreshEmployeeButton" type="button"
+                class="secondary-button">Refresh my tasks</button>
+
+        <div id="employeeTaskList" aria-live="polite">
+            <p class="empty-message">
+                Choose an employee to view assignments.
+            </p>
+        </div>
+    </section>
+
+    <section class="card" aria-labelledby="newProjectTitle">
+        <h2 id="newProjectTitle">3. Create project</h2>
+
+        <form id="projectForm">
+            <label for="projectName">Project name</label>
+            <input id="projectName" required maxlength="100"
+                   placeholder="Enter project name">
+
+            <label for="projectDescription">Description</label>
+            <textarea id="projectDescription" maxlength="500"
+                      placeholder="Enter description"></textarea>
+
+            <button type="submit">Create project</button>
+        </form>
+    </section>
+
+    <section class="card" aria-labelledby="projectsTitle">
+        <div class="section-heading">
+            <h2 id="projectsTitle">4. Projects</h2>
+            <button id="refreshProjectsButton" type="button"
+                    class="secondary-button">
+                Refresh projects
+            </button>
+        </div>
+
+        <div id="projectList" aria-live="polite">
+            <p class="empty-message">Loading projects...</p>
+        </div>
+    </section>
+
+    <section id="taskSection" class="card hidden"
+             aria-labelledby="selectedProjectName">
+
+        <h2 id="selectedProjectName">Selected project</h2>
+        <p id="selectedProjectDescription"></p>
+
+        <div class="task-form-container">
+            <h3>Create and assign task</h3>
+
+            <form id="taskForm">
+                <label for="taskTitle">Task title</label>
+                <input id="taskTitle" required maxlength="150"
+                       placeholder="Enter task title">
+
+                <label for="taskDescription">Description</label>
+                <textarea id="taskDescription"
+                          maxlength="500"></textarea>
+
+                <label for="taskStatus">Status</label>
+                <select id="taskStatus">
+                    <option value="TODO">To do</option>
+                    <option value="IN_PROGRESS">In progress</option>
+                    <option value="DONE">Done</option>
+                </select>
+
+                <label for="taskAssignee">Assign employee</label>
+                <select id="taskAssignee">
+                    <option value="">Unassigned</option>
+                </select>
+
+                <button type="submit">Create task</button>
+            </form>
+        </div>
+
+        <div class="section-heading">
+            <h3>Project tasks</h3>
+            <button id="refreshTasksButton" type="button"
+                    class="secondary-button">
+                Refresh tasks
+            </button>
+        </div>
+
+        <div id="taskList" aria-live="polite"></div>
+    </section>
+
+    <section class="card api-card">
+        <h2>REST API activity</h2>
+        <p>Most recent browser-to-server request</p>
+        <div id="apiActivity" role="status" aria-live="polite">
+            No requests yet.
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    COMP713 Distributed &amp; Mobile Systems — Prototype
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
