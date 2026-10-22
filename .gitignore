@@ -22,3 +22,29 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Maven build output (recreated by `mvn package`)
+target/
+
+# Local H2 database files (tables are created on startup)
+*.mv.db
+*.trace.db
+
+# Local environment files - may contain passwords
+.env
+.env.local
+
+# Android / Gradle build output and machine-specific settings
+.gradle/
+build/
+local.properties
+*.apk
+*.aab
+.cxx/
+captures/
+
+# IDE and OS clutter
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
