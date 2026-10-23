@@ -222,3 +222,22 @@ footer {
         max-width: none;
     }
 }
+
+.activity-item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.95rem;
+}
+
+.activity-time {
+    color: #6b7280;
+    min-width: 5.5rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.activity-retry {
+    color: #b45309;
+}

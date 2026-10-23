@@ -593,6 +593,69 @@ async function loadEmployeeTasks() {
     }
 }
 
+// --------------------------------------
+// Activity log (written by the message consumer)
+// --------------------------------------
+
+async function loadActivity() {
+
+    const list = $("activityList");
+
+    const entries = await api(
+        "GET",
+        "activity?limit=20"
+    );
+
+    list.replaceChildren();
+
+    if (!entries.length) {
+
+        empty(
+            list,
+            "No activity yet. Is the task-event-consumer running?"
+        );
+
+        return;
+    }
+
+    for (const entry of entries) {
+
+        const when =
+            new Date(entry.processedAt).toLocaleTimeString();
+
+        const title =
+            entry.taskTitle || `Task ${entry.taskId}`;
+
+        let what;
+
+        if (entry.eventType === "TASK_ASSIGNED") {
+            what = entry.assignedUserId
+                ? `assigned to ${entry.assigneeName || "user " + entry.assignedUserId}`
+                : "unassigned";
+        } else {
+            what = `status changed to ${(entry.status || "").replace("_", " ")}`;
+        }
+
+        const item = element("div", "", "activity-item");
+
+        item.append(
+            element("span", when, "activity-time"),
+            element("span", `${title}: ${what}`)
+        );
+
+        if (entry.attempts > 1) {
+            item.append(
+                element(
+                    "span",
+                    `(after ${entry.attempts} attempts)`,
+                    "activity-retry"
+                )
+            );
+        }
+
+        list.append(item);
+    }
+}
 
 // --------------------------------------
 // Create user
@@ -756,6 +819,11 @@ $("refreshEmployeeButton").addEventListener(
     () => attempt(loadEmployeeTasks)
 );
 
+$("refreshActivityButton").addEventListener(
+    "click",
+    () => attempt(loadActivity)
+);
+
 
 // --------------------------------------
 // Initial application load
@@ -765,5 +833,6 @@ attempt(async () => {
 
     await loadUsers();
     await loadProjects();
+    await loadActivity();
 
 });

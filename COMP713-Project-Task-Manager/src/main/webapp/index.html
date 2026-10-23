@@ -150,6 +150,23 @@
         <div id="taskList" aria-live="polite"></div>
     </section>
 
+    <section class="card" aria-labelledby="activityTitle">
+        <div class="section-heading">
+            <h2 id="activityTitle">5. Activity log</h2>
+            <button id="refreshActivityButton" type="button"
+                    class="secondary-button">Refresh activity</button>
+        </div>
+
+        <p class="demo-note">
+            Recorded by the separate message consumer from
+            RabbitMQ task events.
+        </p>
+
+        <div id="activityList" aria-live="polite">
+            <p class="empty-message">Loading activity...</p>
+        </div>
+    </section>
+    
     <section class="card api-card">
         <h2>REST API activity</h2>
         <p>Most recent browser-to-server request</p>
