@@ -1,0 +1,19 @@
+# RabbitMQ message broker for the task-events integration.
+#
+# Start:  docker compose up -d
+# Stop:   docker compose down
+#
+# Broker (AMQP):      localhost:5672
+# Management web UI:  http://localhost:15672  (guest / guest)
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: comp713-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq-data:

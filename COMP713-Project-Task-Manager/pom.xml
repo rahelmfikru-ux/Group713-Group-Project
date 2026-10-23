@@ -41,6 +41,13 @@
             <version>8.4.0</version>
         </dependency>
 
+        <!-- RabbitMQ client for publishing task events -->
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>5.22.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

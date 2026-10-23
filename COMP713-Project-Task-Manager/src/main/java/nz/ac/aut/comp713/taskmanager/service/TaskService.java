@@ -4,6 +4,7 @@ package nz.ac.aut.comp713.taskmanager.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import nz.ac.aut.comp713.taskmanager.messaging.TaskEventPublisher;
 import nz.ac.aut.comp713.taskmanager.model.Task;
 import nz.ac.aut.comp713.taskmanager.model.User;
 import nz.ac.aut.comp713.taskmanager.repository.ProjectRepository;
@@ -23,6 +24,7 @@ public class TaskService {
     private TaskRepository tasks;
     private ProjectRepository projects;
     private UserRepository users;
+    private TaskEventPublisher events;
 
     protected TaskService() {
     }
@@ -31,11 +33,13 @@ public class TaskService {
     public TaskService(
             TaskRepository tasks,
             ProjectRepository projects,
-            UserRepository users) {
+            UserRepository users,
+            TaskEventPublisher events) {
 
         this.tasks = tasks;
         this.projects = projects;
         this.users = users;
+        this.events = events;
     }
 
     public List<Task> getTasksForProject(Long projectId) {
@@ -80,7 +84,17 @@ public class TaskService {
         task.setId(null);
         task.setAssigneeName(null);
 
-        return tasks.save(task);
+        Task created = tasks.save(task);
+
+        // A task created with an employee counts as an assignment.
+        if (created != null && created.getAssignedUserId() != null) {
+            events.publish(
+                TaskEventPublisher.TASK_ASSIGNED,
+                created
+            );
+        }
+
+        return created;
     }
 
     public Task updateTaskStatus(
@@ -92,10 +106,20 @@ public class TaskService {
 
         String normalisedStatus = normaliseStatus(status);
 
-        return tasks.updateStatus(
+        Task updated = tasks.updateStatus(
             task.getId(),
             normalisedStatus
         );
+
+        // Saved first, then announced to the message broker.
+        if (updated != null) {
+            events.publish(
+                TaskEventPublisher.TASK_STATUS_CHANGED,
+                updated
+            );
+        }
+
+        return updated;
     }
 
     public Task assignTask(
@@ -107,10 +131,20 @@ public class TaskService {
 
         validateEmployee(employeeId);
 
-        return tasks.updateAssignee(
+        Task updated = tasks.updateAssignee(
             task.getId(),
             employeeId
         );
+
+        // Saved first, then announced to the message broker.
+        if (updated != null) {
+            events.publish(
+                TaskEventPublisher.TASK_ASSIGNED,
+                updated
+            );
+        }
+
+        return updated;
     }
 
     private void validateEmployee(Long userId) {
