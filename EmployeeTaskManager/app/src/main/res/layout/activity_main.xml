@@ -43,85 +43,13 @@
             android:textStyle="bold"
             android:layout_marginBottom="12dp" />
 
-        <!-- Task 1 -->
+        <!-- Tasks loaded from REST API -->
 
         <LinearLayout
+            android:id="@+id/taskContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:background="#EEEEEE"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Build Login Screen"
-                android:textSize="19sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Project: Mobile Application"
-                android:textSize="15sp"
-                android:layout_marginTop="6dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Status: IN PROGRESS"
-                android:textSize="15sp"
-                android:layout_marginTop="6dp" />
-
-            <Button
-                android:id="@+id/taskButton1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="View Task"
-                android:layout_marginTop="12dp" />
-
-        </LinearLayout>
-
-        <!-- Task 2 -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:background="#EEEEEE"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Test REST API"
-                android:textSize="19sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Project: COMP713"
-                android:textSize="15sp"
-                android:layout_marginTop="6dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Status: TO DO"
-                android:textSize="15sp"
-                android:layout_marginTop="6dp" />
-
-            <Button
-                android:id="@+id/taskButton2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="View Task"
-                android:layout_marginTop="12dp" />
-
-        </LinearLayout>
+            android:orientation="vertical" />
 
     </LinearLayout>
 

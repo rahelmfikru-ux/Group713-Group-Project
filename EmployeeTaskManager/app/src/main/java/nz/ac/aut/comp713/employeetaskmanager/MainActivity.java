@@ -1,8 +1,19 @@
 package nz.ac.aut.comp713.employeetaskmanager;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,58 +22,43 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import android.content.Intent;
-import android.util.Log;
-
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String API_URL =
             "http://10.0.2.2:8080/project-task-manager/api/users/1/tasks";
+
+    private LinearLayout taskContainer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        taskContainer = findViewById(R.id.taskContainer);
+
         loadTasksFromApi();
 
-        findViewById(R.id.taskButton1).setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, TaskDetailsActivity.class);
+        ViewCompat.setOnApplyWindowInsetsListener(
+                findViewById(R.id.main),
+                (v, insets) -> {
 
-            intent.putExtra("TASK_NAME", "Build Login Screen");
-            intent.putExtra("PROJECT_NAME", "Mobile Application");
-            intent.putExtra(
-                    "TASK_DESCRIPTION",
-                    "Implement the employee login functionality for the mobile application."
-            );
+                    Insets systemBars = insets.getInsets(
+                            WindowInsetsCompat.Type.systemBars()
+                    );
 
-            startActivity(intent);
-        });
+                    v.setPadding(
+                            systemBars.left,
+                            systemBars.top,
+                            systemBars.right,
+                            systemBars.bottom
+                    );
 
-        findViewById(R.id.taskButton2).setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, TaskDetailsActivity.class);
-
-            intent.putExtra("TASK_NAME", "Test REST API");
-            intent.putExtra("PROJECT_NAME", "COMP713");
-            intent.putExtra(
-                    "TASK_DESCRIPTION",
-                    "Test the REST API connection between the employee application and the task management system."
-            );
-
-            startActivity(intent);
-        });
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+                    return insets;
+                }
+        );
     }
 
     private void loadTasksFromApi() {
@@ -82,10 +78,13 @@ public class MainActivity extends AppCompatActivity {
                 int responseCode = connection.getResponseCode();
 
                 BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(connection.getInputStream())
+                        new InputStreamReader(
+                                connection.getInputStream()
+                        )
                 );
 
                 StringBuilder response = new StringBuilder();
+
                 String line;
 
                 while ((line = reader.readLine()) != null) {
@@ -95,13 +94,121 @@ public class MainActivity extends AppCompatActivity {
                 reader.close();
                 connection.disconnect();
 
-                Log.d("TASK_API", "Response code: " + responseCode);
-                Log.d("TASK_API", "Response: " + response);
+                Log.d(
+                        "TASK_API",
+                        "Response code: " + responseCode
+                );
+
+                Log.d(
+                        "TASK_API",
+                        "Response: " + response
+                );
+
+                JSONArray tasks =
+                        new JSONArray(response.toString());
+
+                runOnUiThread(() -> displayTasks(tasks));
 
             } catch (Exception e) {
-                Log.e("TASK_API", "API request failed", e);
+
+                Log.e(
+                        "TASK_API",
+                        "API request failed",
+                        e
+                );
+            }
+        }).start();
+    }
+
+    private void displayTasks(JSONArray tasks) {
+
+        taskContainer.removeAllViews();
+
+        try {
+
+            for (int i = 0; i < tasks.length(); i++) {
+
+                JSONObject task =
+                        tasks.getJSONObject(i);
+
+                String title =
+                        task.getString("title");
+
+                String status =
+                        task.getString("status");
+
+                String description =
+                        task.getString("description");
+
+                String projectId =
+                        task.getString("projectId");
+
+                View taskView =
+                        LayoutInflater
+                                .from(this)
+                                .inflate(
+                                        R.layout.item_task,
+                                        taskContainer,
+                                        false
+                                );
+
+                TextView taskTitle =
+                        taskView.findViewById(
+                                R.id.taskTitle
+                        );
+
+                TextView taskStatus =
+                        taskView.findViewById(
+                                R.id.taskStatus
+                        );
+
+                Button viewTaskButton =
+                        taskView.findViewById(
+                                R.id.viewTaskButton
+                        );
+
+                taskTitle.setText(title);
+
+                taskStatus.setText(
+                        "Status: " + status
+                );
+
+                viewTaskButton.setOnClickListener(v -> {
+
+                    Intent intent =
+                            new Intent(
+                                    MainActivity.this,
+                                    TaskDetailsActivity.class
+                            );
+
+                    intent.putExtra(
+                            "TASK_NAME",
+                            title
+                    );
+
+                    intent.putExtra(
+                            "PROJECT_NAME",
+                            "Project " + projectId
+                    );
+
+                    intent.putExtra(
+                            "TASK_DESCRIPTION",
+                            description
+                    );
+
+                    startActivity(intent);
+                });
+
+                taskContainer.addView(taskView);
             }
 
-        }).start();
+        } catch (Exception e) {
+
+            Log.e(
+                    "TASK_API",
+                    "Error displaying tasks",
+                    e
+            );
+        }
     }
 }
