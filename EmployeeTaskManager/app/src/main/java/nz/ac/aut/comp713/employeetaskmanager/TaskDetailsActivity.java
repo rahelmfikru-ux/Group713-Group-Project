@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import android.widget.TextView;
 
 public class TaskDetailsActivity extends AppCompatActivity {
 
@@ -15,6 +16,19 @@ public class TaskDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_task_details);
+
+        TextView taskNameText = findViewById(R.id.taskNameText);
+        TextView projectText = findViewById(R.id.projectText);
+        TextView descriptionText = findViewById(R.id.descriptionText);
+
+        String taskName = getIntent().getStringExtra("TASK_NAME");
+        String projectName = getIntent().getStringExtra("PROJECT_NAME");
+        String description = getIntent().getStringExtra("TASK_DESCRIPTION");
+
+        taskNameText.setText(taskName);
+        projectText.setText("Project: " + projectName);
+        descriptionText.setText(description);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
