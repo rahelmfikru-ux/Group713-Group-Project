@@ -1,6 +1,10 @@
 # Compiled class file
 *.class
 
+# Database lock files. Remove .db commit requires pre-populated database
+*.lock.db
+*.db
+
 # Log file
 *.log
 
