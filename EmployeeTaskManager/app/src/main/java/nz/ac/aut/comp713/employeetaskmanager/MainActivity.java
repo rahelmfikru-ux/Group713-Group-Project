@@ -197,6 +197,11 @@ public class MainActivity extends AppCompatActivity {
                     );
 
                     intent.putExtra(
+                            "PROJECT_ID",
+                            Integer.parseInt(projectId)
+                    );
+
+                    intent.putExtra(
                             "TASK_DESCRIPTION",
                             description
                     );

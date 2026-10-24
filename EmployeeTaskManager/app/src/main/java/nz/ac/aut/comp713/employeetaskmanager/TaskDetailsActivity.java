@@ -1,6 +1,7 @@
 package nz.ac.aut.comp713.employeetaskmanager;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -8,6 +9,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class TaskDetailsActivity extends AppCompatActivity {
 
@@ -40,6 +45,12 @@ public class TaskDetailsActivity extends AppCompatActivity {
         int taskId =
                 getIntent().getIntExtra(
                         "TASK_ID",
+                        -1
+                );
+
+        int projectId =
+                getIntent().getIntExtra(
+                        "PROJECT_ID",
                         -1
                 );
 
@@ -116,13 +127,104 @@ public class TaskDetailsActivity extends AppCompatActivity {
                             .getSelectedItem()
                             .toString();
 
-            Toast.makeText(
-                    this,
-                    "Task " + taskId +
-                            " status changed to " +
-                            selectedStatus,
-                    Toast.LENGTH_SHORT
-            ).show();
+            updateTaskStatus(
+                    projectId,
+                    taskId,
+                    selectedStatus
+            );
         });
+    }
+
+    private void updateTaskStatus(
+            int projectId,
+            int taskId,
+            String status) {
+
+        new Thread(() -> {
+
+            try {
+
+                URL url = new URL(
+                        "http://10.0.2.2:8080/project-task-manager/api/projects/"
+                                + projectId
+                                + "/tasks/"
+                                + taskId
+                                + "/status"
+                );
+
+                HttpURLConnection connection =
+                        (HttpURLConnection) url.openConnection();
+
+                connection.setRequestMethod("PUT");
+
+                connection.setRequestProperty(
+                        "Content-Type",
+                        "application/json"
+                );
+
+                connection.setDoOutput(true);
+
+                String json =
+                        "{\"status\":\"" + status + "\"}";
+
+                OutputStream outputStream =
+                        connection.getOutputStream();
+
+                outputStream.write(
+                        json.getBytes("UTF-8")
+                );
+
+                outputStream.flush();
+                outputStream.close();
+
+                int responseCode =
+                        connection.getResponseCode();
+
+                Log.d(
+                        "TASK_UPDATE",
+                        "Response code: " + responseCode
+                );
+
+                connection.disconnect();
+
+                runOnUiThread(() -> {
+
+                    if (responseCode >= 200 &&
+                            responseCode < 300) {
+
+                        Toast.makeText(
+                                this,
+                                "Task status updated",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+                    } else {
+
+                        Toast.makeText(
+                                this,
+                                "Failed to update task",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
+
+            } catch (Exception e) {
+
+                Log.e(
+                        "TASK_UPDATE",
+                        "Status update failed",
+                        e
+                );
+
+                runOnUiThread(() ->
+                        Toast.makeText(
+                                this,
+                                "Error updating task",
+                                Toast.LENGTH_SHORT
+                        ).show()
+                );
+            }
+
+        }).start();
     }
 }
