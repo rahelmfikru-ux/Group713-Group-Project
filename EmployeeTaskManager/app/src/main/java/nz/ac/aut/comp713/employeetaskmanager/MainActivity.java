@@ -182,6 +182,11 @@ public class MainActivity extends AppCompatActivity {
                             );
 
                     intent.putExtra(
+                            "TASK_ID",
+                            task.optInt("id", -1)
+                    );
+
+                    intent.putExtra(
                             "TASK_NAME",
                             title
                     );
@@ -194,6 +199,11 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra(
                             "TASK_DESCRIPTION",
                             description
+                    );
+
+                    intent.putExtra(
+                            "TASK_STATUS",
+                            status
                     );
 
                     startActivity(intent);
