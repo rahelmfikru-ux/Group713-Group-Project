@@ -1,35 +1,29 @@
-#!/bin/zsh
+#!/usr/bin/env bash
+#
+# Builds the API + website and starts it on http://localhost:8080/project-task-manager/
+# (macOS / Linux). Windows: use run-app.ps1.
+#
+# The H2 database is a local file (data/), created automatically on
+# first start, so no database server or password is needed.
 
 set -e
 
 cd "$(dirname "$0")"
 
-source ./.env.local
-
-PAYARA="$HOME/.m2/repository/fish/payara/extras/payara-micro/6.2025.10/payara-micro-6.2025.10.jar"
-MYSQL="$HOME/.m2/repository/com/mysql/mysql-connector-j/8.4.0/mysql-connector-j-8.4.0.jar"
-WAR="$PWD/target/project-task-manager.war"
-
-if [[ -z "$DB_PASSWORD" ]]; then
-    echo "Database password is missing."
-    exit 1
-fi
+PAYARA_VERSION="6.2025.10"
+PAYARA="payara-micro-$PAYARA_VERSION.jar"
 
 if [[ ! -f "$PAYARA" ]]; then
-    echo "Payara Micro JAR not found."
-    exit 1
-fi
-
-if [[ ! -f "$MYSQL" ]]; then
-    echo "MySQL Connector/J not found."
-    exit 1
+    echo "Downloading Payara Micro $PAYARA_VERSION (first run only)..."
+    mvn -q dependency:copy \
+        "-Dartifact=fish.payara.extras:payara-micro:$PAYARA_VERSION" \
+        "-DoutputDirectory=."
 fi
 
 echo "Building project..."
 mvn -q clean package
 
-echo "Starting Project & Task Manager..."
+echo "Starting Project & Task Manager on port 8080..."
 exec java -jar "$PAYARA" \
-    --addLibs "$MYSQL" \
     --port 8080 \
-    --deploy "$WAR"
+    --deploy target/project-task-manager.war
