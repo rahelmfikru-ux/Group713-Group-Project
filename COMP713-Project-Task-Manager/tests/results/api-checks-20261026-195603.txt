@@ -1,0 +1,24 @@
+API checks against http://localhost:8080/project-task-manager/api
+Started Mon, Oct 26, 2026  7:56:03 PM
+
+1.   PASS  Create project (HTTP 201)
+2.   PASS  Reject project with blank name (HTTP 400)
+3.   PASS  Create employee (HTTP 201)
+4.   PASS  Reject user with invalid role (HTTP 400)
+5.   PASS  Manager creates task assigned to employee A (HTTP 201)
+6.   PASS  Reject task title over 150 characters (HTTP 400)
+7.   PASS  Tasks for a missing project return 404 (HTTP 404)
+8.   PASS  Employee A's task list shows the new assignment (HTTP 200)
+9.   PASS  Reject invalid status value (HTTP 400)
+10.  PASS  Employee updates status to DONE (HTTP 200)
+11.  PASS  Status change is persisted (re-read from the API) (HTTP 200)
+12.  PASS  Assigned employee checks in with GPS (HTTP 201)
+13.  PASS  Reject check-in by an employee the task is not assigned to (HTTP 400)
+14.  PASS  Reject manual check-in without a location (HTTP 400)
+15.  PASS  Manager sees the check-in for the project (HTTP 200)
+16.  PASS  Reject activity log limit outside 1-100 (HTTP 400)
+17.  PASS  Consumer saved the event for task 31 to the activity log (1s)
+
+Passed: 17   Failed: 0   Skipped: 0   (of 17)
+Test data: project 10, task 31, employees 4 and 5
+Report saved to /c/Users/denny/OneDrive/Documents/GitHub/Group713-Group-Project/COMP713-Project-Task-Manager/tests/results/api-checks-20261026-195603.txt
