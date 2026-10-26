@@ -10,6 +10,8 @@ import nz.ac.aut.comp713.taskmanager.repository.CheckInRepository;
 import nz.ac.aut.comp713.taskmanager.repository.ProjectRepository;
 import nz.ac.aut.comp713.taskmanager.repository.TaskRepository;
 import nz.ac.aut.comp713.taskmanager.repository.UserRepository;
+import nz.ac.aut.comp713.taskmanager.websocket.LiveUpdateBroadcaster;
+import nz.ac.aut.comp713.taskmanager.websocket.LiveUpdateBroadcaster;
 
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +34,7 @@ public class CheckInService {
     private TaskRepository tasks;
     private ProjectRepository projects;
     private UserRepository users;
+    private LiveUpdateBroadcaster live;
 
     protected CheckInService() {
     }
@@ -41,12 +44,14 @@ public class CheckInService {
             CheckInRepository checkIns,
             TaskRepository tasks,
             ProjectRepository projects,
-            UserRepository users) {
+            UserRepository users,
+            LiveUpdateBroadcaster live) {
 
         this.checkIns = checkIns;
         this.tasks = tasks;
         this.projects = projects;
         this.users = users;
+        this.live = live;
     }
 
     public List<CheckIn> getCheckInsForProject(Long projectId) {
@@ -133,7 +138,12 @@ public class CheckInService {
             throw new IllegalArgumentException("Source must be GPS or MANUAL.");
         }
 
-        return checkIns.save(checkIn);
+        CheckIn saved = checkIns.save(checkIn);
+
+        // Tell any open manager pages straight away.
+        live.checkInCreated(task, saved);
+
+        return saved;
     }
 
     private void requireProject(Long projectId) {

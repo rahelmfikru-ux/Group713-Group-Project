@@ -10,6 +10,7 @@ import nz.ac.aut.comp713.taskmanager.model.User;
 import nz.ac.aut.comp713.taskmanager.repository.ProjectRepository;
 import nz.ac.aut.comp713.taskmanager.repository.TaskRepository;
 import nz.ac.aut.comp713.taskmanager.repository.UserRepository;
+import nz.ac.aut.comp713.taskmanager.websocket.LiveUpdateBroadcaster;
 
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +26,7 @@ public class TaskService {
     private ProjectRepository projects;
     private UserRepository users;
     private TaskEventPublisher events;
+    private LiveUpdateBroadcaster live;
 
     protected TaskService() {
     }
@@ -34,12 +36,14 @@ public class TaskService {
             TaskRepository tasks,
             ProjectRepository projects,
             UserRepository users,
-            TaskEventPublisher events) {
+            TaskEventPublisher events,
+            LiveUpdateBroadcaster live) {
 
         this.tasks = tasks;
         this.projects = projects;
         this.users = users;
         this.events = events;
+        this.live = live;
     }
 
     public List<Task> getTasksForProject(Long projectId) {
@@ -86,6 +90,11 @@ public class TaskService {
 
         Task created = tasks.save(task);
 
+        // Push to open browsers first (fast), then the broker.
+        if (created != null) {
+            live.taskUpdated(LiveUpdateBroadcaster.CREATED, created);
+        }
+
         // A task created with an employee counts as an assignment.
         if (created != null && created.getAssignedUserId() != null) {
             events.publish(
@@ -111,8 +120,9 @@ public class TaskService {
             normalisedStatus
         );
 
-        // Saved first, then announced to the message broker.
+        // Saved first, then pushed to browsers and the message broker.
         if (updated != null) {
+            live.taskUpdated(LiveUpdateBroadcaster.STATUS, updated);
             events.publish(
                 TaskEventPublisher.TASK_STATUS_CHANGED,
                 updated
@@ -136,8 +146,9 @@ public class TaskService {
             employeeId
         );
 
-        // Saved first, then announced to the message broker.
+        // Saved first, then pushed to browsers and the message broker.
         if (updated != null) {
+            live.taskUpdated(LiveUpdateBroadcaster.ASSIGNMENT, updated);
             events.publish(
                 TaskEventPublisher.TASK_ASSIGNED,
                 updated
