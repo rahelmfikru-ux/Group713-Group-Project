@@ -1,7 +1,6 @@
 package nz.ac.aut.comp713.employeetaskmanager;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -10,14 +9,20 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 
 public class TaskDetailsActivity extends AppCompatActivity {
 
+    private static final String[] STATUSES = {"TODO", "IN_PROGRESS", "DONE"};
+
     private Spinner statusSpinner;
     private Button updateStatusButton;
+
+    private long taskId;
+    private long projectId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,205 +30,76 @@ public class TaskDetailsActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_task_details);
 
-        TextView taskNameText =
-                findViewById(R.id.taskNameText);
+        TextView taskNameText = findViewById(R.id.taskNameText);
+        TextView projectText = findViewById(R.id.projectText);
+        TextView descriptionText = findViewById(R.id.descriptionText);
+        statusSpinner = findViewById(R.id.statusSpinner);
+        updateStatusButton = findViewById(R.id.updateStatusButton);
 
-        TextView projectText =
-                findViewById(R.id.projectText);
+        // Task information passed from MainActivity
+        taskId = getIntent().getLongExtra("TASK_ID", -1);
+        projectId = getIntent().getLongExtra("PROJECT_ID", -1);
 
-        TextView descriptionText =
-                findViewById(R.id.descriptionText);
+        String description = getIntent().getStringExtra("TASK_DESCRIPTION");
+        String currentStatus = getIntent().getStringExtra("TASK_STATUS");
 
-        statusSpinner =
-                findViewById(R.id.statusSpinner);
+        taskNameText.setText(getIntent().getStringExtra("TASK_NAME"));
+        projectText.setText("Project: " + getIntent().getStringExtra("PROJECT_NAME"));
+        descriptionText.setText(description == null || description.isEmpty()
+                ? "No description"
+                : description);
 
-        updateStatusButton =
-                findViewById(R.id.updateStatusButton);
-
-        // Get task information passed from MainActivity
-
-        int taskId =
-                getIntent().getIntExtra(
-                        "TASK_ID",
-                        -1
-                );
-
-        int projectId =
-                getIntent().getIntExtra(
-                        "PROJECT_ID",
-                        -1
-                );
-
-        String taskName =
-                getIntent().getStringExtra(
-                        "TASK_NAME"
-                );
-
-        String projectName =
-                getIntent().getStringExtra(
-                        "PROJECT_NAME"
-                );
-
-        String description =
-                getIntent().getStringExtra(
-                        "TASK_DESCRIPTION"
-                );
-
-        String currentStatus =
-                getIntent().getStringExtra(
-                        "TASK_STATUS"
-                );
-
-        // Display task information
-
-        taskNameText.setText(taskName);
-
-        projectText.setText(
-                "Project: " + projectName
-        );
-
-        descriptionText.setText(description);
-
-        // Status options
-
-        String[] statuses = {
-                "TODO",
-                "IN_PROGRESS",
-                "DONE"
-        };
-
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(
-                        this,
-                        android.R.layout.simple_spinner_item,
-                        statuses
-                );
-
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, STATUSES);
         adapter.setDropDownViewResource(
-                android.R.layout.simple_spinner_dropdown_item
-        );
-
+                android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(adapter);
 
-        // Select the task's current status
-
-        if (currentStatus != null) {
-
-            for (int i = 0; i < statuses.length; i++) {
-
-                if (statuses[i].equals(currentStatus)) {
-
-                    statusSpinner.setSelection(i);
-
-                    break;
-                }
+        for (int i = 0; i < STATUSES.length; i++) {
+            if (STATUSES[i].equals(currentStatus)) {
+                statusSpinner.setSelection(i);
+                break;
             }
         }
 
-        updateStatusButton.setOnClickListener(v -> {
-
-            String selectedStatus =
-                    statusSpinner
-                            .getSelectedItem()
-                            .toString();
-
-            updateTaskStatus(
-                    projectId,
-                    taskId,
-                    selectedStatus
-            );
-        });
+        updateStatusButton.setOnClickListener(v ->
+                updateTaskStatus(statusSpinner.getSelectedItem().toString()));
     }
 
-    private void updateTaskStatus(
-            int projectId,
-            int taskId,
-            String status) {
+    private void updateTaskStatus(String status) {
+
+        updateStatusButton.setEnabled(false);
 
         new Thread(() -> {
+            String message;
 
             try {
+                JSONObject body = new JSONObject();
+                body.put("status", status);
 
-                URL url = new URL(
-                        "http://10.0.2.2:8080/project-task-manager/api/projects/"
-                                + projectId
-                                + "/tasks/"
-                                + taskId
-                                + "/status"
-                );
+                ApiClient.Result result = ApiClient.send(
+                        "PUT",
+                        "projects/" + projectId + "/tasks/" + taskId + "/status",
+                        body.toString());
 
-                HttpURLConnection connection =
-                        (HttpURLConnection) url.openConnection();
+                // Show the server's own error text, e.g. "Task not found".
+                message = result.isSuccess()
+                        ? "Task status updated"
+                        : result.errorMessage();
 
-                connection.setRequestMethod("PUT");
+            } catch (IOException e) {
+                message = ApiClient.networkError(e);
 
-                connection.setRequestProperty(
-                        "Content-Type",
-                        "application/json"
-                );
-
-                connection.setDoOutput(true);
-
-                String json =
-                        "{\"status\":\"" + status + "\"}";
-
-                OutputStream outputStream =
-                        connection.getOutputStream();
-
-                outputStream.write(
-                        json.getBytes("UTF-8")
-                );
-
-                outputStream.flush();
-                outputStream.close();
-
-                int responseCode =
-                        connection.getResponseCode();
-
-                Log.d(
-                        "TASK_UPDATE",
-                        "Response code: " + responseCode
-                );
-
-                connection.disconnect();
-
-                runOnUiThread(() -> {
-
-                    if (responseCode >= 200 &&
-                            responseCode < 300) {
-
-                        Toast.makeText(
-                                this,
-                                "Task status updated",
-                                Toast.LENGTH_SHORT
-                        ).show();
-
-                    } else {
-
-                        Toast.makeText(
-                                this,
-                                "Failed to update task",
-                                Toast.LENGTH_SHORT
-                        ).show();
-                    }
-                });
-
-            } catch (Exception e) {
-
-                Log.e(
-                        "TASK_UPDATE",
-                        "Status update failed",
-                        e
-                );
-
-                runOnUiThread(() ->
-                        Toast.makeText(
-                                this,
-                                "Error updating task",
-                                Toast.LENGTH_SHORT
-                        ).show()
-                );
+            } catch (JSONException e) {
+                message = "Could not build the request.";
             }
+
+            final String shown = message;
+
+            runOnUiThread(() -> {
+                updateStatusButton.setEnabled(true);
+                Toast.makeText(this, shown, Toast.LENGTH_LONG).show();
+            });
 
         }).start();
     }
