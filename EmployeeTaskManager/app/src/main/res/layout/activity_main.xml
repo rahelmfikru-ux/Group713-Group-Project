@@ -23,13 +23,28 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
+        <!-- Choose which employee is using the app (demo only, not a login) -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="I am"
+            android:textSize="14sp" />
+
+        <Spinner
+            android:id="@+id/employeeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:layout_marginBottom="8dp" />
+
         <!-- Welcome message -->
 
         <TextView
             android:id="@+id/welcomeText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Welcome, Employee"
+            android:text="Welcome"
             android:textSize="18sp"
             android:layout_marginBottom="24dp" />
 
@@ -42,6 +57,24 @@
             android:textSize="22sp"
             android:textStyle="bold"
             android:layout_marginBottom="12dp" />
+
+        <!-- Loading / empty / error messages -->
+
+        <TextView
+            android:id="@+id/messageText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/retryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Retry"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone" />
 
         <!-- Tasks loaded from REST API -->
 

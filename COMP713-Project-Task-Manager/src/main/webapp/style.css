@@ -241,3 +241,12 @@ footer {
 .activity-retry {
     color: #b45309;
 }
+
+.check-in-line {
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.check-in-line a {
+    color: inherit;
+}

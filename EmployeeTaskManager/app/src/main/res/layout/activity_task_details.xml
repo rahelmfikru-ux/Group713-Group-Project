@@ -73,6 +73,61 @@
             android:layout_height="wrap_content"
             android:text="Update Status" />
 
+        <!-- Location check-in (mobile-specific feature) -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Check in at this task"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Let your manager know you're on site."
+            android:textSize="15sp"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/checkInGpsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Check in with my location" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No location? Type where you are:"
+            android:textSize="15sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/manualLocationInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:hint="e.g. Level 2, 10 Queen Street"
+            android:inputType="textCapSentences"
+            android:maxLength="200"
+            android:importantForAutofill="no" />
+
+        <Button
+            android:id="@+id/checkInManualButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Check in manually" />
+
+        <TextView
+            android:id="@+id/checkInResultText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:layout_marginTop="12dp" />
+
     </LinearLayout>
 
 </ScrollView>

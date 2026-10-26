@@ -46,6 +46,29 @@ public class DatabaseInitializer {
             ADD COLUMN IF NOT EXISTS assigned_user_id BIGINT
             """;
 
+    private static final String CREATE_CHECK_INS_TABLE = """
+            CREATE TABLE IF NOT EXISTS check_ins (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                task_id BIGINT NOT NULL,
+                user_id BIGINT NOT NULL,
+                source VARCHAR(10) NOT NULL,
+                latitude DOUBLE,
+                longitude DOUBLE,
+                accuracy_metres DOUBLE,
+                location_note VARCHAR(200),
+                checked_in_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_check_ins_task
+                    FOREIGN KEY (task_id)
+                    REFERENCES tasks(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_check_ins_user
+                    FOREIGN KEY (user_id)
+                    REFERENCES users(id),
+                CONSTRAINT chk_check_in_source
+                    CHECK (source IN ('GPS', 'MANUAL'))
+            )
+            """;
+    
     private DatabaseInitializer() {
     }
 
@@ -75,6 +98,9 @@ public class DatabaseInitializer {
             // Update older databases to support task assignments.
             statement.executeUpdate(UPDATE_EXISTING_TASKS_TABLE);
             System.out.println("Task assignment column ready.");
+
+            statement.executeUpdate(CREATE_CHECK_INS_TABLE);
+            System.out.println("Check-ins table ready.");
         }
     }
 
