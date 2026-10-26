@@ -308,6 +308,51 @@ async function loadProjects() {
     }
 }
 
+// --------------------------------------
+// Location check-ins (from the Android app)
+// --------------------------------------
+
+function checkInLine(checkIn) {
+
+    const line = element("p", "", "check-in-line");
+
+    if (!checkIn) {
+        line.textContent = "No check-ins yet.";
+        return line;
+    }
+
+    const when = new Date(checkIn.checkedInAt).toLocaleString();
+    const who = checkIn.employeeName || `user ${checkIn.userId}`;
+
+    if (checkIn.source === "GPS") {
+
+        const lat = checkIn.latitude.toFixed(5);
+        const lon = checkIn.longitude.toFixed(5);
+
+        const accuracy = checkIn.accuracyMetres == null
+            ? ""
+            : ` (±${Math.round(checkIn.accuracyMetres)} m)`;
+
+        const map = document.createElement("a");
+        map.href =
+            `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`;
+        map.target = "_blank";
+        map.rel = "noopener";
+        map.textContent = `${lat}, ${lon}`;
+
+        line.append(
+            `Last check-in: ${who}, ${when}, GPS `,
+            map,
+            accuracy
+        );
+
+    } else {
+        line.textContent =
+            `Last check-in: ${who}, ${when}, manual location "${checkIn.locationNote}"`;
+    }
+
+    return line;
+}
 
 // --------------------------------------
 // Display tasks for selected project
@@ -323,6 +368,20 @@ async function loadTasks() {
         "GET",
         `projects/${selectedProject.id}/tasks`
     );
+
+    const checkIns = await api(
+        "GET",
+        `projects/${selectedProject.id}/check-ins`
+    );
+
+    // Check-ins arrive newest first, so the first one per task is the latest.
+    const latestCheckIn = new Map();
+
+    for (const checkIn of checkIns) {
+        if (!latestCheckIn.has(checkIn.taskId)) {
+            latestCheckIn.set(checkIn.taskId, checkIn);
+        }
+    }
 
     const list = $("taskList");
 
@@ -356,7 +415,9 @@ async function loadTasks() {
                 `Assigned to: ${
                     task.assigneeName || "Unassigned"
                 }`
-            )
+            ),
+            
+            checkInLine(latestCheckIn.get(task.id))
         );
 
         // Assign or reassign an employee.
