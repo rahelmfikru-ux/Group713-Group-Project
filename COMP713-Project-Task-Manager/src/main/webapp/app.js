@@ -719,6 +719,168 @@ async function loadActivity() {
 }
 
 // --------------------------------------
+// Live updates (WebSocket)
+// --------------------------------------
+//
+// The server pushes a message whenever a task changes or an employee
+// checks in (from Android or another browser). The page reloads only
+// the affected sections - no manual refresh and no polling.
+// If the connection drops, it reconnects with a growing delay and
+// reloads everything, because changes may have been missed meanwhile.
+
+let liveSocket = null;
+let reconnectDelayMs = 1000;
+let liveConnectedBefore = false;
+let livePaused = false;
+const liveLatencies = [];
+const LIVE_TARGET_MS = 1000;
+
+function setLiveStatus(text, kind) {
+    $("liveStatus").textContent = text;
+    $("liveStatus").className = `live-status ${kind}`;
+}
+
+function connectLiveUpdates() {
+
+    const url = new URL("ws/updates", window.location.href);
+    url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+
+    setLiveStatus("Connecting…", "connecting");
+
+    liveSocket = new WebSocket(url);
+
+    liveSocket.addEventListener("open", () => {
+
+        reconnectDelayMs = 1000;
+        setLiveStatus("Connected — this page updates automatically", "connected");
+
+        if (liveConnectedBefore) {
+            // We may have missed changes while disconnected.
+            attempt(restoreCurrentState);
+            message("Live updates reconnected. Page refreshed with the latest data.");
+        }
+
+        liveConnectedBefore = true;
+    });
+
+    liveSocket.addEventListener("message", event => {
+
+        let update;
+
+        try {
+            update = JSON.parse(event.data);
+        } catch {
+            return;
+        }
+
+        attempt(() => handleLiveUpdate(update));
+    });
+
+    liveSocket.addEventListener("close", () => {
+
+        if (livePaused) {
+            setLiveStatus("Disconnected on purpose — click Reconnect", "disconnected");
+            return;
+        }
+
+        const seconds = Math.round(reconnectDelayMs / 1000);
+
+        setLiveStatus(
+            `Disconnected — reconnecting in ${seconds} s`,
+            "disconnected"
+        );
+
+        setTimeout(connectLiveUpdates, reconnectDelayMs);
+        reconnectDelayMs = Math.min(reconnectDelayMs * 2, 10000);
+    });
+}
+
+async function restoreCurrentState() {
+
+    await loadUsers();
+    await loadProjects();
+    await loadTasks();
+    await loadEmployeeTasks();
+    await loadActivity();
+}
+
+// Demo/test button: drop the connection, let another user make
+// changes, then reconnect and check the page catches up.
+function toggleLiveConnection() {
+
+    if (!livePaused) {
+        livePaused = true;
+        $("liveToggleButton").textContent = "Reconnect live updates";
+        liveSocket.close();
+    } else {
+        livePaused = false;
+        $("liveToggleButton").textContent = "Disconnect live updates";
+        connectLiveUpdates();
+    }
+}
+
+async function handleLiveUpdate(update) {
+
+    if (update.type === "CONNECTED") {
+        return;
+    }
+
+    if (typeof update.sentAtMillis === "number") {
+        recordLiveLatency(Date.now() - update.sentAtMillis);
+    }
+
+    const time = new Date().toLocaleTimeString();
+    $("liveLast").textContent = `${time}: ${describeLiveUpdate(update)}`;
+
+    if (selectedProject && selectedProject.id === update.projectId) {
+        await loadTasks();
+    }
+
+    await loadEmployeeTasks();
+
+    // The message consumer writes the activity log a moment later.
+    if (update.type === "TASK_UPDATED") {
+        setTimeout(() => attempt(loadActivity), 1500);
+    }
+}
+
+function describeLiveUpdate(update) {
+
+    const title = `"${update.title}"`;
+
+    if (update.type === "CHECK_IN_CREATED") {
+        return `${update.employeeName || "An employee"} checked in at ${title} (${update.source})`;
+    }
+
+    if (update.change === "CREATED") {
+        return `New task ${title}`;
+    }
+
+    if (update.change === "ASSIGNMENT") {
+        return `${title} assigned to ${update.assigneeName || "nobody"}`;
+    }
+
+    return `${title} changed to ${String(update.status).replace("_", " ")}`;
+}
+
+function recordLiveLatency(ms) {
+
+    liveLatencies.push(Math.max(0, ms));
+
+    const sorted = [...liveLatencies].sort((a, b) => a - b);
+    const pick = fraction =>
+        sorted[Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * fraction))];
+
+    const p95 = pick(0.95);
+    const verdict = p95 <= LIVE_TARGET_MS ? "PASS" : "FAIL";
+
+    $("liveLatency").textContent =
+        `Delivery time (server → this page): last ${Math.round(ms)} ms, ` +
+        `median ${Math.round(pick(0.5))} ms, p95 ${Math.round(p95)} ms ` +
+        `over ${sorted.length} messages. Target p95 ≤ ${LIVE_TARGET_MS} ms: ${verdict}`;
+}
+
+// --------------------------------------
 // Create user
 // --------------------------------------
 
@@ -897,3 +1059,7 @@ attempt(async () => {
     await loadActivity();
 
 });
+
+$("liveToggleButton").addEventListener("click", toggleLiveConnection);
+
+connectLiveUpdates();

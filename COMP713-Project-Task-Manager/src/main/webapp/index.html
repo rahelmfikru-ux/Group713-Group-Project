@@ -20,6 +20,19 @@
     <div id="message" class="message hidden"
          role="status" aria-live="polite"></div>
 
+    <section class="card live-card" aria-labelledby="liveTitle">
+        <div class="section-heading">
+            <h2 id="liveTitle">Live updates</h2>
+            <button id="liveToggleButton" type="button"
+                    class="secondary-button">Disconnect live updates</button>
+        </div>
+        <p id="liveStatus" class="live-status connecting">Connecting…</p>
+        <p id="liveLast">No live updates yet.</p>
+        <p id="liveLatency" class="demo-note">
+            Delivery time: no messages measured yet.
+        </p>
+    </section>
+
     <section class="card" aria-labelledby="usersTitle">
         <div class="section-heading">
             <h2 id="usersTitle">1. Team members</h2>
@@ -166,7 +179,7 @@
             <p class="empty-message">Loading activity...</p>
         </div>
     </section>
-    
+
     <section class="card api-card">
         <h2>REST API activity</h2>
         <p>Most recent browser-to-server request</p>

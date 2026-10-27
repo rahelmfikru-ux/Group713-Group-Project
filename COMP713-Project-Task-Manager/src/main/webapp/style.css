@@ -250,3 +250,23 @@ footer {
 .check-in-line a {
     color: inherit;
 }
+
+.live-status {
+    font-weight: 600;
+}
+
+.live-status::before {
+    content: "●  ";
+}
+
+.live-status.connected {
+    color: #15803d;
+}
+
+.live-status.connecting {
+    color: #b45309;
+}
+
+.live-status.disconnected {
+    color: #b91c1c;
+}
